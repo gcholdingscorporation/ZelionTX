@@ -100,7 +100,7 @@ add_compile_definitions(
   PCBHORUS ${TARGET_RADIO_DEFS} FLAVOUR="${FLAVOUR}"
   # Peripherals present on the board
   COLORLCD HARDWARE_TOUCH HARDWARE_KEYS SOFTWARE_KEYBOARD RTCLOCK PWR_BUTTON_PRESS
-  BATTERY_CHARGE USB_CHARGER USB_CHARGE_CONTROL HAPTIC AUDIO
+  BATTERY_CHARGE USB_CHARGER USB_CHARGE_CONTROL HAPTIC AUDIO IMU
   FUNCTION_SWITCHES FUNCTION_SWITCHES_RGB_LEDS RGB_LEDS RGB_LEDS_900NS
   AUX_SERIAL AUX2_SERIAL USB_SERIAL
   # Link: internal ELRS module only
@@ -143,6 +143,10 @@ include_directories(
   ${RADIO_SRC_DIR}/gui/colorlcd/mainview
   ${RADIO_SRC_DIR}/gui/colorlcd/controls
   ${RADIO_SRC_DIR}/gui/colorlcd/themes
+  ${RADIO_SRC_DIR}/gui/colorlcd/setup_menus
+  ${RADIO_SRC_DIR}/gui/colorlcd/model
+  ${RADIO_SRC_DIR}/gui/colorlcd/radio
+  ${RADIO_SRC_DIR}/gui/colorlcd/module
   ${RADIO_SRC_DIR}/fonts/colorlcd
 )
 
