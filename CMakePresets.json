@@ -1,0 +1,50 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": { "major": 3, "minor": 21, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "firmware-base",
+      "hidden": true,
+      "generator": "Ninja",
+      "toolchainFile": "${sourceDir}/platform/cmake/toolchain/arm-none-eabi.cmake",
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "Release" }
+    },
+    {
+      "name": "tx15",
+      "inherits": "firmware-base",
+      "displayName": "RadioMaster TX15 firmware",
+      "binaryDir": "${sourceDir}/build/tx15",
+      "cacheVariables": { "ZX_TARGET": "tx15" }
+    },
+    {
+      "name": "tx16smk3",
+      "inherits": "firmware-base",
+      "displayName": "RadioMaster TX16S Mk3 firmware",
+      "binaryDir": "${sourceDir}/build/tx16smk3",
+      "cacheVariables": { "ZX_TARGET": "tx16smk3" }
+    },
+    {
+      "name": "gx15",
+      "inherits": "firmware-base",
+      "displayName": "GX15 firmware",
+      "binaryDir": "${sourceDir}/build/gx15",
+      "cacheVariables": { "ZX_TARGET": "gx15" }
+    },
+    {
+      "name": "native",
+      "displayName": "Simulator and tests",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/native",
+      "cacheVariables": { "ZX_TARGET": "native", "CMAKE_BUILD_TYPE": "Debug" }
+    }
+  ],
+  "buildPresets": [
+    { "name": "tx15", "configurePreset": "tx15", "targets": ["firmware"] },
+    { "name": "tx16smk3", "configurePreset": "tx16smk3", "targets": ["firmware"] },
+    { "name": "gx15", "configurePreset": "gx15", "targets": ["firmware"] },
+    { "name": "native", "configurePreset": "native" }
+  ],
+  "testPresets": [
+    { "name": "native", "configurePreset": "native", "output": { "outputOnFailure": true } }
+  ]
+}

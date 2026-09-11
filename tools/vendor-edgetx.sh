@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 # Vendors the EdgeTX platform layer into platform/ from a pinned EdgeTX commit.
 #
-# This is the only way EdgeTX code enters this repository. The list of paths
-# below is the record of what was taken (decision D-19). Re-run at a newer
-# commit and review the diff to pick up upstream driver fixes.
+# This is the only way EdgeTX code enters this repository (decision D-19).
+# The tree radio/src is copied whole and then the EXCLUDES below are removed,
+# so the record of what was taken is "everything in radio/src at the commit,
+# minus this list". Trimming *within* what remains happens in ZelionTX's own
+# CMake by not compiling files, never by editing the vendored tree, so a
+# re-vendor at a newer commit is a clean diff.
 #
 # Usage: tools/vendor-edgetx.sh /path/to/edgetx-checkout
 # The checkout must be at EDGETX_COMMIT with submodules lvgl, FreeRTOS, uf2
@@ -12,7 +15,8 @@ set -euo pipefail
 
 EDGETX_COMMIT="96ab2745d1bc0025c5508ac8a3b862f34cf97c6e"
 SRC="${1:?path to EdgeTX checkout}"
-DEST="$(cd "$(dirname "$0")/.." && pwd)/platform"
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+DEST="$ROOT/platform"
 
 have="$(git -C "$SRC" rev-parse HEAD)"
 if [[ "$have" != "$EDGETX_COMMIT" ]]; then
@@ -20,73 +24,97 @@ if [[ "$have" != "$EDGETX_COMMIT" ]]; then
   exit 1
 fi
 for sm in lvgl FreeRTOS uf2 stb; do
-  [[ -e "$SRC/radio/src/thirdparty/$sm/.git" || -n "$(ls -A "$SRC/radio/src/thirdparty/$sm" 2>/dev/null)" ]] \
+  [[ -n "$(ls -A "$SRC/radio/src/thirdparty/$sm" 2>/dev/null)" ]] \
     || { echo "submodule $sm not initialised" >&2; exit 1; }
 done
 
-R="$SRC/radio/src"
-
-# Paths relative to radio/src, copied whole. Trimming inside these directories
-# happens in ZelionTX's own CMake by not listing files, never by deleting them
-# here, so a re-vendor stays a clean diff.
-PATHS=(
-  # Hardware abstraction and OS wrapper
-  hal
-  os
-  # STM32 drivers (H7 family only is selected by CMake)
-  targets/common/arm/stm32
-  targets/common/arm/CMakeLists.txt
-  # Boards and radios
-  boards/generic_stm32
-  boards/rm-h750
-  boards/hw_defs/tx15.json
-  boards/hw_defs/tx16smk3.json
-  boards/hw_defs/gx15.json
-  targets/tx15
-  targets/tx16smk3
-  targets/gx15
-  # Desktop simulator stubs
-  targets/simu
-  # Peripheral drivers used by the H750 boards
-  drivers
-  # Bootloader (UF2 install and rollback path)
-  bootloader
-  # Colour LCD plumbing kept for LVGL: flush, DMA2D, wrapper, boot menu, libui
-  gui/colorlcd/lcd.cpp
-  gui/colorlcd/lcd.h
-  gui/colorlcd/LvglWrapper.cpp
-  gui/colorlcd/LvglWrapper.h
-  gui/colorlcd/lv_conf.h
-  gui/colorlcd/boot_menu.cpp
-  gui/colorlcd/libui
-  gui/colorlcd/CMakeListsLVGL.txt
-  # Fonts and bootloader bitmaps (trimmed later to the faces in use)
-  fonts
-  bitmaps
-  # Core scheduling and CRSF pieces reused as-is
-  tasks.cpp
-  tasks.h
-  mixer_scheduler.cpp
-  mixer_scheduler.h
-  pulses/crossfire.cpp
-  pulses/crossfire.h
-  telemetry/crossfire.cpp
-  telemetry/crossfire.h
-  crc.cpp
-  crc.h
-  FreeRTOSConfig.h
-  # Third-party
-  thirdparty/CMSIS
-  thirdparty/STM32H7xx_HAL_Driver
-  thirdparty/STM32_USB_Device_Library
-  thirdparty/FatFs
-  thirdparty/FreeRTOS
-  thirdparty/lvgl
-  thirdparty/uf2
-  thirdparty/stb
-  thirdparty/lz4
-  thirdparty/libopenui
+# Paths relative to radio/src that are removed after the copy.
+EXCLUDES=(
+  # Other MCU families and their HAL/CMSIS
+  thirdparty/STM32F2xx_HAL_Driver
+  thirdparty/STM32F4xx_HAL_Driver
+  thirdparty/STM32H7RS_HAL_Driver
+  thirdparty/CMSIS/Device/ST/STM32F2xx
+  thirdparty/CMSIS/Device/ST/STM32F4xx
+  thirdparty/CMSIS/Device/ST/STM32H7RS
+  targets/common/arm/stm32/f2
+  targets/common/arm/stm32/f4
+  # Radios we do not target
+  targets/taranis
+  targets/horus
+  targets/pl18
+  targets/t15pro
+  targets/st16
+  targets/pa01
+  targets/c14
+  targets/v12
+  targets/t22
+  targets/stm32h7s78-dk
+  boards/jumper-h750
+  boards/helloradio-h750
+  # Lua, YAML storage tables, mono-LCD GUIs, debug tooling
+  thirdparty/Lua
+  thirdparty/Segger
+  thirdparty/AccessDenied
+  lua
+  storage/yaml
+  gui/128x64
+  gui/212x64
+  # LVGL: keep src/ and the top-level headers only
+  thirdparty/lvgl/docs
+  thirdparty/lvgl/examples
+  thirdparty/lvgl/demos
+  thirdparty/lvgl/tests
+  thirdparty/lvgl/scripts
+  thirdparty/lvgl/env_support
+  thirdparty/lvgl/.github
+  # FreeRTOS: keep the kernel, the Cortex-M4F GCC port and MemMang
+  thirdparty/FreeRTOS/.github
+  thirdparty/FreeRTOS/examples
+  thirdparty/FreeRTOS/portable/ARMClang
+  thirdparty/FreeRTOS/portable/ARMv8M
+  thirdparty/FreeRTOS/portable/BCC
+  thirdparty/FreeRTOS/portable/CCS
+  thirdparty/FreeRTOS/portable/CodeWarrior
+  thirdparty/FreeRTOS/portable/Common
+  thirdparty/FreeRTOS/portable/IAR
+  thirdparty/FreeRTOS/portable/Keil
+  thirdparty/FreeRTOS/portable/MPLAB
+  thirdparty/FreeRTOS/portable/MSVC-MingW
+  thirdparty/FreeRTOS/portable/MikroC
+  thirdparty/FreeRTOS/portable/oWatcom
+  thirdparty/FreeRTOS/portable/Paradigm
+  thirdparty/FreeRTOS/portable/RVDS
+  thirdparty/FreeRTOS/portable/Renesas
+  thirdparty/FreeRTOS/portable/Rowley
+  thirdparty/FreeRTOS/portable/SDCC
+  thirdparty/FreeRTOS/portable/Softune
+  thirdparty/FreeRTOS/portable/Tasking
+  thirdparty/FreeRTOS/portable/ThirdParty
+  thirdparty/FreeRTOS/portable/WizC
+  # stb: only the two image headers are used
+  thirdparty/stb/deprecated
+  thirdparty/stb/tests
+  thirdparty/stb/tools
+  thirdparty/stb/data
+  thirdparty/stb/docs
+  # Fonts: only the standard-size English face is kept (see below)
+  fonts/Arimo
+  fonts/Kanit
+  fonts/Nanum
+  fonts/Noto
+  fonts/Roboto
+  fonts/Ubuntu
+  fonts/sqt5
+  fonts/std
+  fonts/lvgl/sml
+  fonts/lvgl/lrg
 )
+
+# Individual files kept from an otherwise excluded area are listed here as
+# "excluded-dir-glob-to-remove" after the copy; fonts/lvgl/std keeps only the
+# English STD face and the boot font.
+FONT_KEEP_REGEX='lv_font_(en_STD|bl)\.c$'
 
 # Build-system pieces from outside radio/src
 TOP_PATHS=(
@@ -94,47 +122,61 @@ TOP_PATHS=(
   cmake/toolchain/native.cmake
   cmake/Macros.cmake
   cmake/Bitmaps.cmake
+  cmake/FetchGtest.cmake
   radio/util/hw_defs
+  radio/util/elf2uf2.py
+  radio/util/encode-bitmap.py
+  radio/util/codecs.py
   tools/hwdef_schema.json
 )
 
 rm -rf "$DEST"
-mkdir -p "$DEST/radio/src" "$DEST/top"
+mkdir -p "$DEST/radio/src"
 
-copied=0
-for p in "${PATHS[@]}"; do
-  if [[ -e "$R/$p" ]]; then
-    mkdir -p "$DEST/radio/src/$(dirname "$p")"
-    cp -a "$R/$p" "$DEST/radio/src/$(dirname "$p")/"
-    copied=$((copied+1))
-  else
-    echo "note: $p not present at this commit, skipped" >&2
-  fi
+# Copy radio/src whole, without VCS metadata or build residue
+cp -a "$SRC/radio/src/." "$DEST/radio/src/"
+find "$DEST/radio/src" -name .git -prune -exec rm -rf {} + 2>/dev/null || true
+find "$DEST/radio/src" -maxdepth 1 -name 'build*' -prune -exec rm -rf {} + 2>/dev/null || true
+
+for p in "${EXCLUDES[@]}"; do
+  rm -rf "$DEST/radio/src/$p"
 done
+find "$DEST/radio/src/fonts/lvgl/std" -type f -name 'lv_font_*.c' \
+  | grep -Ev "$FONT_KEEP_REGEX" | xargs -r rm -f
+
+# stb: keep only the headers EdgeTX includes
+find "$DEST/radio/src/thirdparty/stb" -maxdepth 1 -type f \
+  | grep -Ev '/(stb_image\.h|stb_image_write\.h|LICENSE|README\.md)$' | xargs -r rm -f
+
+# Build-system pieces keep their EdgeTX-relative paths so that Macros.cmake
+# finds radio/util next to radio/src.
 for p in "${TOP_PATHS[@]}"; do
   if [[ -e "$SRC/$p" ]]; then
-    mkdir -p "$DEST/top/$(dirname "$p")"
-    cp -a "$SRC/$p" "$DEST/top/$(dirname "$p")/"
-    copied=$((copied+1))
+    mkdir -p "$DEST/$(dirname "$p")"
+    cp -a "$SRC/$p" "$DEST/$(dirname "$p")/"
   else
     echo "note: $p not present at this commit, skipped" >&2
   fi
 done
-
-# Drop VCS metadata from submodules and any build residue
-find "$DEST" -name .git -prune -exec rm -rf {} + 2>/dev/null || true
 find "$DEST" -name '__pycache__' -prune -exec rm -rf {} + 2>/dev/null || true
+
+# Keep only the hw_defs JSONs for radios we target
+find "$DEST/radio/src/boards/hw_defs" -name '*.json' \
+  | grep -Ev '/(tx15|tx16smk3|gx15)\.json$' | xargs -r rm -f
 
 cat > "$DEST/VENDORED.md" <<EOF
 # Vendored from EdgeTX
 
 Commit: $EDGETX_COMMIT
 Script: tools/vendor-edgetx.sh
-Paths: see the PATHS and TOP_PATHS arrays in the script ($copied entries copied).
+
+Contents: EdgeTX radio/src at that commit minus the EXCLUDES list in the
+script, plus the build-system pieces in TOP_PATHS at their EdgeTX-relative paths. Every file keeps
+its EdgeTX licence header (GPL-2.0).
 
 Do not edit files here by hand without recording the change in CHANGES.md.
 EOF
 [[ -f "$DEST/CHANGES.md" ]] || printf '# Local changes to vendored EdgeTX files\n\n(none yet)\n' > "$DEST/CHANGES.md"
 
-echo "vendored $copied paths into $DEST"
+echo "vendored into $DEST"
 du -sh "$DEST"
