@@ -19,6 +19,7 @@
 #include "os/sleep.h"
 #include "os/task.h"
 #include "os/time.h"
+#include "rtos.h"
 #include "stm32_hal.h"
 
 #include <lvgl/lvgl.h>

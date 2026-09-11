@@ -57,7 +57,6 @@ EXCLUDES=(
   thirdparty/Segger
   thirdparty/AccessDenied
   lua
-  storage/yaml
   gui/128x64
   gui/212x64
   # LVGL: keep src/ and the top-level headers only
@@ -141,6 +140,9 @@ find "$DEST/radio/src" -maxdepth 1 -name 'build*' -prune -exec rm -rf {} + 2>/de
 for p in "${EXCLUDES[@]}"; do
   rm -rf "$DEST/radio/src/$p"
 done
+# YAML storage: the generated tables go, the headers stay (dataconstants.h
+# includes storage/yaml/yaml_defs.h)
+find "$DEST/radio/src/storage/yaml" -type f \( -name '*.cpp' -o -name '*.py' -o -name '*.sh' \) -delete
 find "$DEST/radio/src/fonts/lvgl/std" -type f -name 'lv_font_*.c' \
   | grep -Ev "$FONT_KEEP_REGEX" | xargs -r rm -f
 

@@ -443,10 +443,6 @@
  *You can use these fonts as default font too and they will be available globally.
  *E.g. #define LV_FONT_CUSTOM_DECLARE   LV_FONT_DECLARE(my_font_1) LV_FONT_DECLARE(my_font_2)*/
 
-#if !defined(BOOT)
-
-#if !defined(SIMU)
-
 /* ZelionTX: built-in Montserrat faces, no EdgeTX lz4 font machinery */
 #define LV_FONT_CUSTOM_DECLARE
 #define LV_FONT_DEFAULT &lv_font_montserrat_14

@@ -184,6 +184,9 @@ add_library(freertos OBJECT EXCLUDE_FROM_ALL
   ${RTOS_DIR}/list.c ${RTOS_DIR}/queue.c ${RTOS_DIR}/tasks.c ${RTOS_DIR}/event_groups.c
   ${RTOS_DIR}/timers.c ${RTOS_DIR}/stream_buffer.c ${RTOS_DIR}/portable/GCC/ARM_CM4F/port.c
 )
+# The kernel must see its own headers before radio/src, where EdgeTX's
+# application timers.h would shadow FreeRTOS's timers.h.
+target_include_directories(freertos BEFORE PRIVATE ${RTOS_DIR}/include ${RTOS_DIR}/portable/GCC/ARM_CM4F)
 set(RTOS_GLUE_SRC
   ${P}/rtos.c
   ${P}/fw_desc.c
