@@ -271,6 +271,7 @@ set(ZX_SRC
   ${ZX_ROOT}/src/main.cpp
   ${ZX_ROOT}/src/compat/app_globals.cpp
   ${ZX_ROOT}/src/platform_glue/lcd_glue.cpp
+  ${P}/rtc.cpp
 )
 
 # ---------------------------------------------------------------------------
@@ -299,8 +300,9 @@ add_custom_command(TARGET firmware POST_BUILD
   COMMAND ${CMAKE_OBJCOPY} -O binary -R .bootloader firmware.elf firmware.bin
   COMMAND ${PYTHON_EXECUTABLE} ${RADIO_DIRECTORY}/util/elf2uf2.py
           --reboot auto --device "${FLAVOUR}"
-          --version "zeliontx-${ZX_VERSION} (${ZX_GIT_SHA})" -i firmware.elf firmware.uf2
+          --version "zeliontx-${ZX_VERSION}-${ZX_GIT_SHA}" -i firmware.elf firmware.uf2
   COMMAND ${CMAKE_SIZE_UTIL} firmware.elf > memory-report.txt
   COMMAND ${CMAKE_SIZE_UTIL} firmware.elf
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-  COMMENT "firmware.bin, firmware.uf2 and memory-report.txt")
+  COMMENT "firmware.bin, firmware.uf2 and memory-report.txt"
+  VERBATIM)

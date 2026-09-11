@@ -28,7 +28,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [tx15, tx16smk3]
+        target: [tx15]
     steps:
       - uses: actions/checkout@v4
       - name: Install host deps
@@ -55,11 +55,13 @@ jobs:
           export PATH="$HOME/.zeliontx/toolchain/bin:$PATH"
           cmake --build --preset ${{ matrix.target }}
       - name: Memory report
-        run: cat build/${{ matrix.target }}/memory-report.txt || true
+        run: cat build/${{ matrix.target }}/firmware/memory-report.txt || true
       - uses: actions/upload-artifact@v4
         with:
           name: zeliontx-${{ matrix.target }}
           path: |
-            build/${{ matrix.target }}/*.uf2
-            build/${{ matrix.target }}/*.map
+            build/${{ matrix.target }}/firmware/firmware.uf2
+            build/${{ matrix.target }}/firmware/firmware.bin
+            build/${{ matrix.target }}/firmware/firmware.map
+            build/${{ matrix.target }}/firmware/memory-report.txt
           if-no-files-found: warn

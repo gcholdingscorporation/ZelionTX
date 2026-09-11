@@ -33,3 +33,30 @@ void mixerSchedulerISRTrigger() {}
 
 // 10 ms tick counter used by timing macros in a few drivers.
 volatile tmr10ms_t g_tmr10ms = 0;
+
+// ---------------------------------------------------------------------------
+// Symbols referenced by drivers that EdgeTX defines in application files
+// ---------------------------------------------------------------------------
+#include "gyro.h"
+#include "hal/imu.h"
+
+// bootloader/boot_uf2.cpp defines this for the bootloader; the firmware's
+// I/O expander poll checks it. Never suspended in ZelionTX.
+bool suspendI2CTasks = false;
+
+// haptic.cpp's 5 ms tick, called from the timer ISR. Haptic comes later.
+void per5ms() {}
+
+// Audio driver bring-up is deferred; board.cpp calls this unconditionally.
+int audioInit() { return 0; }
+
+// No IMU use in ZelionTX; board.cpp probes for one at boot.
+imu_read_fn imuDetect(const etx_imu_t*, uint8_t) { return nullptr; }
+void gyroStart(imu_read_fn) {}
+
+// Stick names used by the generated analog input tables (English only for now;
+// all UI strings move to one table in ui/).
+const char STR_STICK_NAMES0[] = "Rud";
+const char STR_STICK_NAMES1[] = "Ele";
+const char STR_STICK_NAMES2[] = "Thr";
+const char STR_STICK_NAMES3[] = "Ail";

@@ -62,3 +62,54 @@ Release. These are the numbers the trimmed ZelionTX build is measured against.
 
 The bss figure includes the LVGL heap and frame buffers placed in SDRAM, not
 internal RAM. Wall time for a clean build with 8 parallel jobs was about 9 minutes.
+
+## Phase 1, build 1: first ZelionTX firmware for the TX15 (2026-09-11)
+
+Built from this repository with `cmake --preset tx15 && cmake --build --preset tx15`.
+Contents: board init through the EdgeTX platform layer, FreeRTOS, LVGL with
+built-in Montserrat fonts, ADC sampling at 4 ms, a UI task at 30 ms that draws
+the version, a frame counter and every analog input's raw value, and hold-power-
+button-two-seconds to switch off. No link, no audio, no storage use, no USB
+modes yet (the USB device stack is compiled because the board init needs it).
+
+| Artifact | Size |
+|---|---|
+| `firmware.bin` | 225,228 bytes text + 236 data (EdgeTX baseline: 1,417,548) |
+| `firmware.uf2` | 451,072 bytes, 881 blocks, all in 0x90000000..0x90037100 |
+| bss | 3.88 MB, of which 2 MB LVGL heap and 0.5 MB frame buffers in SDRAM |
+
+Safety checks done before handing the file over:
+- The UF2 contains no block below 0x90000000, so it cannot touch the 64 KB
+  bootloader in internal flash (0x08000000..0x08010000). Verified by parsing the
+  block headers. EdgeTX's own UF2 does carry those blocks because it ships the
+  bootloader; ours never will (decision D-17).
+- Section layout and entry point match the EdgeTX baseline: firmware header at
+  0x90000000, code copied to SDRAM at 0xD0000000 by the bootstrap, vectors in
+  DTCM, reboot buffer at 0x2001FFFC.
+- No reboot block is inserted; the converter only adds one when a bootloader
+  image is present.
+
+Compatibility shims in `src/compat/app_globals.cpp` (each is a debt): RadioData
+and ModelData instances, channel outputs, storageDirty, mixer scheduler period
+and trigger, 10 ms tick, suspendI2CTasks, per5ms, audioInit, IMU detect and
+gyroStart, four stick-name strings. `rtc.cpp` is compiled from the platform tree
+for `gettime`/`gmktime`.
+
+### Flashing procedure for the owner
+
+1. Copy `firmware.uf2` somewhere handy.
+2. Put the radio into its EdgeTX bootloader (the same way you enter it for an
+   EdgeTX update on that radio; on most RadioMaster colour radios that is holding
+   both horizontal trims inward while powering on [unverified for the TX15]).
+3. Connect USB. The bootloader shows a USB drive. Drag `firmware.uf2` onto it.
+   The bootloader flashes it and reboots.
+4. Expected: a dark screen with "ZelionTX 0.1.0 (<sha>)" at the top, a "frame N"
+   counter climbing, and rows of `inNN  value` that change when sticks, pots
+   and sliders move. Hold the power button two seconds to switch off.
+5. Report: does it boot, does the counter move, do the values respond, does
+   power-off work, anything on the screen that looks wrong, and a photo.
+6. Rollback: enter the bootloader the same way and drop the EdgeTX UF2 you
+   normally use. The bootloader is not modified by this file.
+
+Not exercised in this build and therefore unknown: touch, keys, rotary, audio,
+haptic, storage, USB modes, the internal module UART. They come one at a time.

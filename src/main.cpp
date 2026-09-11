@@ -87,6 +87,21 @@ static void uiTask()
     }
     lv_timer_handler();
     WDG_RESET();
+
+    // Hold the power button for two seconds to switch off. EdgeTX's pwrCheck()
+    // lives in its application layer; this is the phase 1 stand-in.
+    static uint32_t pressedTicks = 0;
+    if (pwrPressed()) {
+      if (++pressedTicks >= (2000 / 30)) {
+        lv_label_set_text(counterLabel, "power off");
+        lv_timer_handler();
+        sleep_ms(200);
+        boardOff();
+      }
+    } else {
+      pressedTicks = 0;
+    }
+
     sleep_until(&next_tick, 30);
   }
 }
