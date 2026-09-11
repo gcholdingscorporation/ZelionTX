@@ -19,7 +19,7 @@
 |---|---|
 | D-9 | Audience: a handful of known pilots on TX15 and TX16S Mk3 first, the Rotorflight community maybe later. Rotorflight API versions supported are the ones those pilots run; others are best effort. |
 | D-10 | Bench radio: TX15 first (the radio ZelionDash was verified on). TX16S Mk3 and GX15 are the next targets; all three are STM32H750 boards with CRSF as the only internal module in EdgeTX. |
-| D-11 | ELRS 4.1 is the minimum. The radio sends the ELRS arming byte ("arm via switch"); ARM lives on an AUX channel. Channel 5 is a one-bit switch channel on ELRS in every packet mode, so collective cannot sit on CH5; the wizard sets the FC channel map accordingly. The exact map is confirmed from the owner's FCs before phase 3. |
+| D-11 | ELRS 4.1 is the minimum. The radio sends the ELRS arming byte ("arm via switch"); ARM lives on an AUX channel. Channel 5 is a one-bit switch channel on ELRS in every packet mode, so collective cannot sit on CH5. Confirmed 2026-09-11 from the owner's Configurator (Receiver tab, "ELRS" preset): CH1 Roll, CH2 Pitch, CH3 Collective, CH4 Yaw, CH5 AUX1 (ARM), CH6 Throttle, CH7 AUX2, CH8 AUX3, CH9-16 AUX4-AUX11, i.e. map string `AECR1T23`. The wizard writes this map. |
 | D-12 | Heli screen has a Simple page (rates in deg/s per axis, expo, governor headspeed, battery profile, PID and rate profile selection) and an Expert page generated from descriptors. Pilots touch Simple. |
 | D-13 | Wizard writes a named "Zelion starter" rate set of 300 deg/s (Configurator's own Rotorflight-type default is 250 cyclic and 400 yaw). Q-8 answered as option (b) for rates only. |
 | D-14 | Write interlock: FC writes are refused unless throttle hold is active and the FC reports disarmed; the wizard opens with "motor unplugged or blades off". Every write is read back and logged with before and after values. |
@@ -34,7 +34,7 @@
 | Id | Question | Options | Recommendation |
 |---|---|---|---|
 | Q-1 | What did "a baked in screen with 3 options" mean? | (a) three screens Dash / Link / Heli; (b) one dashboard with three layout variants; (c) three dashboard presets by aircraft class. | (a). If (b) or (c), the Dash screen gains a selector and Link and Heli become setup pages; the module split does not change. |
-| Q-2 | Arming: ELRS arming byte ("arm via switch") or CH5 arming? | Settled as D-11. Remaining question is only the channel map string the owner's FCs use. | Read it from the Configurator's Receiver tab on one heli. |
+| Q-2 | Arming: ELRS arming byte ("arm via switch") or CH5 arming? | Settled as D-11, including the channel map (`AECR1T23`, the Configurator's ELRS preset). | Closed. |
 | Q-3 | LVGL version: stay on EdgeTX's 8.2 branch or move to LVGL 9? | 8.2 is what the reused wrapper and DMA2D flush target; 9 has a better renderer but the wrapper must be rewritten. | Stay on 8.2 for version 1; revisit after phase 8. |
 | Q-4 | Default internal module baud. | 400k works everywhere at 500 Hz; 1.87M is what the Rotorflight Lua suite demands and supports 1 kHz. | 1.87M default, 400k selectable. |
 | Q-5 | Should the Heli screen include tuning (rates, PIDs, governor)? | Answered by the connected-system pillar (chapter 06): yes, as table-driven editors that store everything in the FC. | Closed: in scope, phase 7b. |

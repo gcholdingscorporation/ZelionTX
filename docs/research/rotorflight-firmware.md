@@ -29,6 +29,10 @@ Range handling (`rx/rx.c`, `fc/rc.c`):
   YAW, COLLECTIVE, THROTTLE, AUX1..AUX12. Resulting default CRSF assignment:
   **CH1 Roll (A), CH2 Pitch (E), CH3 Throttle (T), CH4 Yaw (R), CH5 Collective (C),
   CH6 AUX1, CH7 AUX2, ...**. Mode ranges index AUX channels as index + 5.
+- **ELRS preset map (observed in the owner's Configurator, Receiver tab, 2026-09-11):**
+  CH1 Roll, CH2 Pitch, CH3 Collective, CH4 Yaw, CH5 AUX1, CH6 Throttle, CH7 AUX2,
+  CH8 AUX3, CH9-16 AUX4-AUX11, i.e. `AECR1T23`. This keeps collective and throttle
+  off ELRS's one-bit channel 5 and puts ARM (AUX1) on it.
 - `rcControlsConfig` defaults: `rc_center 1500`, `rc_deflection 510`, `rc_min_throttle 0`
   and `rc_max_throttle 0` (auto), `rc_deadband 5`, `rc_yaw_deadband 5`, `rc_smoothness 50`.
 - Stick processing (`fc/rc.c:191-217`): `data = input - 1500; deadband; deflection =
