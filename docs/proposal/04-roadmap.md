@@ -23,9 +23,13 @@ do not start UI work until phase 2's exit test passes on a real module.
 ### Phase 0. Bootstrap (days)
 
 - Create `LICENSE` (GPL-2.0-only) and `NOTICE` naming EdgeTX and the commit used.
-- `git subtree add` EdgeTX at `96ab274` into `platform/`, then delete everything not in
-  the reuse list in one commit so the provenance is visible in history.
-- Pin Arm GNU 14.2.rel1; add `CMakePresets.json` with `tx16smk3`, `tx15`, `native`.
+- Vendor EdgeTX at `96ab274` into `platform/` with `tools/vendor-edgetx.sh`, whose
+  path list is the provenance record (D-19).
+- Pin Arm GCC 14.2 (xPack build, since Arm's host is not reachable everywhere);
+  `tools/setup-toolchain.sh` installs it. Add `CMakePresets.json` with `tx15`,
+  `tx16smk3`, `native`.
+- Prove the environment by building stock EdgeTX for the TX15 with that toolchain
+  before touching anything.
 - CI: build native tests, build both firmware targets, upload `.bin` and map files.
 - Decide the two open decisions in `05-decisions-and-risks.md` that block phase 1
   (arming byte policy can wait; the LVGL version cannot).

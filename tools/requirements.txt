@@ -1,0 +1,8 @@
+# Python packages used by the vendored EdgeTX code generators
+# (hardware definitions, bitmaps, datacopy) and by ZelionTX tools.
+pydantic>=2
+jinja2
+pillow
+lz4
+rich
+requests

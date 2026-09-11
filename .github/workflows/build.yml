@@ -1,0 +1,65 @@
+name: build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  native:
+    name: native tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install host deps
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq cmake ninja-build libsdl2-dev
+          pip install -r tools/requirements.txt
+      - name: Configure
+        run: cmake --preset native
+      - name: Build and test
+        run: |
+          cmake --build --preset native
+          ctest --preset native --output-on-failure
+
+  firmware:
+    name: firmware ${{ matrix.target }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [tx15, tx16smk3]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install host deps
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq cmake ninja-build clang-18 libclang-18-dev
+          sudo ln -sf /usr/lib/llvm-18/lib/libclang-18.so.1 /usr/lib/llvm-18/lib/libclang.so
+          pip install -r tools/requirements.txt "clang==18.*"
+      - name: Toolchain (cached)
+        id: tc
+        uses: actions/cache@v4
+        with:
+          path: ~/.zeliontx/toolchain
+          key: arm-gcc-xpack-14.2.1-1.1
+      - name: Install toolchain
+        if: steps.tc.outputs.cache-hit != 'true'
+        run: tools/setup-toolchain.sh
+      - name: Configure
+        run: |
+          export PATH="$HOME/.zeliontx/toolchain/bin:$PATH"
+          cmake --preset ${{ matrix.target }}
+      - name: Build
+        run: |
+          export PATH="$HOME/.zeliontx/toolchain/bin:$PATH"
+          cmake --build --preset ${{ matrix.target }}
+      - name: Memory report
+        run: cat build/${{ matrix.target }}/memory-report.txt || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: zeliontx-${{ matrix.target }}
+          path: |
+            build/${{ matrix.target }}/*.uf2
+            build/${{ matrix.target }}/*.map
+          if-no-files-found: warn

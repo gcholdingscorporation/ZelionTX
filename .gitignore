@@ -1,0 +1,10 @@
+build/
+build-*/
+.cache/
+*.elf
+*.bin
+*.uf2
+*.map
+__pycache__/
+.venv/
+.zeliontx/

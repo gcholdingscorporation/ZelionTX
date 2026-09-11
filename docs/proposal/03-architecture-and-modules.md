@@ -271,8 +271,10 @@ ZelionTX/
   NOTICE                    provenance of platform/ (EdgeTX, GPL-2.0)
 ```
 
-`platform/` is brought in with `git subtree` at a pinned EdgeTX commit so upstream
-driver fixes can be merged later; every file taken keeps its EdgeTX header.
+`platform/` is produced by `tools/vendor-edgetx.sh` from a pinned EdgeTX commit
+(decision D-19); the script's path list is the record of what was taken, every file
+keeps its EdgeTX header, and upstream driver fixes are picked up by re-running it at
+a newer commit and reviewing the diff.
 
 ## Resource discipline (the "no hogging" rule, made concrete)
 

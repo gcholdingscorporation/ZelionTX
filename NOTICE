@@ -1,0 +1,30 @@
+ZelionTX
+========
+
+Copyright (C) 2026 ZelionTX contributors.
+
+ZelionTX is licensed under the GNU General Public License version 2 only
+(GPL-2.0-only). See LICENSE.
+
+Provenance
+----------
+
+The `platform/` directory is derived from EdgeTX
+(https://github.com/EdgeTX/edgetx), Copyright (C) EdgeTX and OpenTX
+contributors, licensed under GPL-2.0. Files are taken from EdgeTX commit
+96ab2745d1bc0025c5508ac8a3b862f34cf97c6e (2026-09-07) by the script
+`tools/vendor-edgetx.sh`, which records the exact list of paths copied.
+Every file keeps its original EdgeTX header. Modifications made for ZelionTX
+are marked in the file or recorded in `platform/CHANGES.md`.
+
+Third-party components inside `platform/` keep their own licences:
+LVGL (MIT), FreeRTOS kernel (MIT), FatFs (BSD-style), STM32 HAL and CMSIS
+(BSD-3-Clause), lz4 (BSD-2-Clause), UF2 (MIT), stb (MIT or public domain).
+
+No code from ExpressLRS (GPL-3.0) or Rotorflight (GPL-3.0) is included.
+Their wire protocols are re-implemented from the notes in `docs/research/`,
+which describe observed behaviour and constants, not source text.
+
+The dashboard logic in `src/dash/` is a port of ZelionDash
+(https://github.com/gcholdingscorporation/zelionpowerflightdashboard), by the
+same authors, relicensed here under GPL-2.0-only.

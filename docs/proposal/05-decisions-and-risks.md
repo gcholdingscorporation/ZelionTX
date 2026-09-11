@@ -13,12 +13,28 @@
 | D-7 | Storage format is flat text `key = value` with sections, not YAML. | A few dozen keys per model do not justify EdgeTX's libclang-generated YAML tables. | Yes. |
 | D-8 | Three screens: Dash, Link, Heli. | Reading of "a baked in screen with 3 options". | Yes, cheap to change. |
 
+## Decisions settled on 2026-09-11 (owner's answers)
+
+| Id | Decision |
+|---|---|
+| D-9 | Audience: a handful of known pilots on TX15 and TX16S Mk3 first, the Rotorflight community maybe later. Rotorflight API versions supported are the ones those pilots run; others are best effort. |
+| D-10 | Bench radio: TX15 first (the radio ZelionDash was verified on). TX16S Mk3 and GX15 are the next targets; all three are STM32H750 boards with CRSF as the only internal module in EdgeTX. |
+| D-11 | ELRS 4.1 is the minimum. The radio sends the ELRS arming byte ("arm via switch"); ARM lives on an AUX channel. Channel 5 is a one-bit switch channel on ELRS in every packet mode, so collective cannot sit on CH5; the wizard sets the FC channel map accordingly. The exact map is confirmed from the owner's FCs before phase 3. |
+| D-12 | Heli screen has a Simple page (rates in deg/s per axis, expo, governor headspeed, battery profile, PID and rate profile selection) and an Expert page generated from descriptors. Pilots touch Simple. |
+| D-13 | Wizard writes a named "Zelion starter" rate set of 300 deg/s (Configurator's own Rotorflight-type default is 250 cyclic and 400 yaw). Q-8 answered as option (b) for rates only. |
+| D-14 | Write interlock: FC writes are refused unless throttle hold is active and the FC reports disarmed; the wizard opens with "motor unplugged or blades off". Every write is read back and logged with before and after values. |
+| D-15 | Electric only in version 1. Trainer port and additional UI languages are version 2, but drivers stay in the platform layer and all UI strings live in one table from the first screen. |
+| D-16 | No commercial intent. GPL-2.0-only. |
+| D-17 | Install and rollback by UF2: the EdgeTX bootloader stays as is; ZelionTX and EdgeTX are each one file dropped on the bootloader's USB drive. |
+| D-18 | Working model: the owner flashes builds and runs short bench checklists, reporting screen, sound and serial output; the software is written and tested natively here. No logic analyser: the ELRS module's own bad/good counters and sync offset are the timing instrument, shown on the Link screen. |
+| D-19 | Platform layer is vendored by script (`tools/vendor-edgetx.sh`) from a pinned EdgeTX commit, not by git subtree: the trimmed tree would never merge cleanly anyway, and a script keeps the copied-path list explicit and the repository small. Upstream driver fixes are re-vendored by re-running the script at a new commit and reviewing the diff. |
+
 ## Decisions that need your answer
 
 | Id | Question | Options | Recommendation |
 |---|---|---|---|
 | Q-1 | What did "a baked in screen with 3 options" mean? | (a) three screens Dash / Link / Heli; (b) one dashboard with three layout variants; (c) three dashboard presets by aircraft class. | (a). If (b) or (c), the Dash screen gains a selector and Link and Heli become setup pages; the module split does not change. |
-| Q-2 | Arming: ELRS arming byte ("arm via switch") or CH5 arming? | ELRS default puts arm on CH5 and Rotorflight's default map also uses CH5 as collective, which conflicts. Betaflight-style setups move arm to an AUX channel via the ELRS arming byte; Rotorflight users typically map collective to CH5 and ARM to an AUX. | Support both in `model/`, default to CH5 = collective with ARM on AUX1 (CH6) sent through the 25-byte RC frame's arming byte set to "switch mode". Verify on the bench in phase 2 which combination the current ELRS receiver firmware honours for CH5 rewriting. [unverified until tested] |
+| Q-2 | Arming: ELRS arming byte ("arm via switch") or CH5 arming? | Settled as D-11. Remaining question is only the channel map string the owner's FCs use. | Read it from the Configurator's Receiver tab on one heli. |
 | Q-3 | LVGL version: stay on EdgeTX's 8.2 branch or move to LVGL 9? | 8.2 is what the reused wrapper and DMA2D flush target; 9 has a better renderer but the wrapper must be rewritten. | Stay on 8.2 for version 1; revisit after phase 8. |
 | Q-4 | Default internal module baud. | 400k works everywhere at 500 Hz; 1.87M is what the Rotorflight Lua suite demands and supports 1 kHz. | 1.87M default, 400k selectable. |
 | Q-5 | Should the Heli screen include tuning (rates, PIDs, governor)? | Answered by the connected-system pillar (chapter 06): yes, as table-driven editors that store everything in the FC. | Closed: in scope, phase 7b. |
