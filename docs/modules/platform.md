@@ -47,3 +47,18 @@ what was flashed, what was observed, pass or fail, date.
 | RTC | | | |
 | Battery voltage and charger state | | | |
 | Power off | | | |
+
+## Baseline: stock EdgeTX TX15 build in this environment (2026-09-11)
+
+Built from EdgeTX `96ab274` with the xPack GCC 14.2.1 toolchain, `-DPCB=TX15`,
+Release. These are the numbers the trimmed ZelionTX build is measured against.
+
+| Artifact | Size |
+|---|---|
+| `bootloader.bin` | 59,384 bytes |
+| `firmware.bin` (code+data, stripped of bootloader) | 1,417,548 bytes |
+| `firmware.uf2` (install file) | 2,967,040 bytes |
+| `arm-none-eabi-size` text / data / bss | 1,481,540 / 1,540 / 4,202,700 bytes |
+
+The bss figure includes the LVGL heap and frame buffers placed in SDRAM, not
+internal RAM. Wall time for a clean build with 8 parallel jobs was about 9 minutes.
