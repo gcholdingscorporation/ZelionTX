@@ -77,6 +77,21 @@ version 1; "SHOULD" is version 1 if cheap, otherwise version 2.
 | F-F3 | MUST provide USB mass storage (logs, voices, models) and USB serial (module passthrough). USB joystick is optional. | edgetx.md 11 |
 | F-F4 | MUST play WAV voice files from `/SOUNDS/<lang>/SYSTEM` for numbers and units, and synthesise tones without files. | edgetx.md 10 |
 
+## G. Connected system (chapter 06)
+
+| Id | Requirement | Source |
+|---|---|---|
+| F-G1 | MUST identify the aircraft on link-up from `MSP_UID` and `MSP_NAME`, select the matching aircraft record, and show its name in the status strip. An unknown UID MUST offer the setup wizard. | vbar-control.md; rotorflight-configurator.md 2 |
+| F-G2 | MUST keep one aircraft record per UID holding only what the FC cannot: switch-to-channel assignment, ELRS model match id and link settings, dashboard overrides, alert thresholds, cached FC data for offline viewing. | vbar-control.md |
+| F-G3 | MUST provide a setup wizard that, with confirmation, names the aircraft (`MSP_SET_NAME`), confirms the channel map (`MSP_RX_MAP`), writes mode ranges and adjustment ranges matching the radio's switch assignment, writes the recommended telemetry list, sets the ELRS model id on the module, checks stick travel against `MSP_RC_CONFIG` with a live `MSP_RC` view, and saves with `MSP_EEPROM_WRITE`. | rotorflight-configurator.md 3; expresslrs.md 6 |
+| F-G4 | MUST provide table-driven parameter editors for rate profiles, PID profiles and tuning, governor config and profile, rescue profile, mixer config and trims, servo configuration, battery config and profiles, ESC sensor config, telemetry config, with layouts selected by FC API version. Out-of-range values MUST be refused at the editor. | rotorflight-configurator.md 3 |
+| F-G5 | MUST refuse any FC write while the FC reports armed, and MUST show the FC's reboot-required and configuration-state flags. | rotorflight-firmware.md 6 |
+| F-G6 | MUST back up the FC configuration (every readable config message for the API version) to storage keyed by UID and FC version before the first write of a session, and on demand; MUST offer restore with a field-level diff and confirmation. | vbar-control.md |
+| F-G7 | MUST write a per-flight event log (arm, disarm, governor state changes, rescue, arming blockers, link drops, alerts, profile changes) alongside the flight log, and MUST tag both with aircraft UID, name, FC version and profile numbers. | vbar-control.md; rotorflight-firmware.md 5 |
+| F-G8 | SHOULD provide ESC parameter pages for the vendors Rotorflight supports through `MSP_ESC_PARAMETERS`. | rotorflight-firmware.md 6 |
+| F-G9 | SHOULD raise the ELRS telemetry ratio while a Heli configuration page is open and restore it on leaving, and MUST show link throughput so a slow page load is explained. | expresslrs.md 4 |
+| F-G10 | SHOULD trigger ELRS receiver WiFi update mode from the Link screen. FC firmware update over the link is out of scope and the UI MUST say so where a user would look for it. | expresslrs.md 5; vbar-control.md |
+
 ## S. Safety
 
 | Id | Requirement | Source |

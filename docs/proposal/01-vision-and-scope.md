@@ -26,6 +26,11 @@ ZelionTX inverts the priority. The transmitter owns exactly what the FC cannot o
 3. showing and speaking what the aircraft reports, through the ZelionDash logic that
    already exists and has been flown.
 
+4. being the FC's control surface, the way Mikado's VBar Control is the control
+   surface of a VBar NEO: the aircraft is recognised from the FC's identity, set up
+   through a wizard on the radio, tuned from the radio with every parameter stored in
+   the FC, and its logs flow back to the radio. See chapter 06.
+
 Everything else is either the FC's job or is out of scope.
 
 ## What "read through everything" established
@@ -71,9 +76,13 @@ The full notes are in `../research/`. The conclusions that shape the design:
 - Aircraft: Rotorflight 2.x flight controllers (MSP API 12.6 to 12.10).
 - Three baked-in screens (interpretation of "a baked in screen with 3 options", see
   decisions): the ZelionDash dashboard, a Link screen (native ELRS configuration and
-  link statistics), and a Heli screen (Rotorflight status, arming blockers, profile
-  selection, adjustment teller). Plus the minimum setup pages: model select, channel and
-  switch assignment, calibration, radio settings.
+  link statistics), and a Heli screen (aircraft recognition, setup wizard, profiles,
+  native parameter editors for rates, PIDs, governor, rescue, mixer, battery, ESC and
+  telemetry list, backup and restore, event log). Plus the minimum setup pages:
+  aircraft list, switch assignment, calibration, radio settings.
+- Aircraft records keyed by the FC's unique id, created on first connection and
+  selected automatically on link-up, so a wrong-model flight is impossible by
+  construction (chapter 06).
 - Audio and haptic alerts using the radio's number vocabulary, flight log to storage,
   USB mass storage for logs and voice files, USB serial passthrough for flashing the
   ELRS module.
@@ -87,8 +96,9 @@ The full notes are in `../research/`. The conclusions that shape the design:
   external module bay, any non-ELRS protocol, mono-LCD radios (F4 class ELRS radios such
   as Boxer or Pocket are a possible version 2 target; the core is designed so the
   screen is the only thing that changes).
-- Configuring Rotorflight from the radio beyond profile selection and adjustment
-  functions. The Configurator stays the tool for that.
+- Hardware-level Rotorflight setup (ports, motor protocol, sensor alignment,
+  firmware flashing) stays in the Configurator over USB. Anything the ELRS link cannot
+  carry at useful rates (blackbox, vibration analysis) stays out.
 
 ## Success criteria
 

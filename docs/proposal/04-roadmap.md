@@ -13,7 +13,9 @@ do not start UI work until phase 2's exit test passes on a real module.
 | 4 | Telemetry | Native and 0x88 decoding, telemetry store, sensor map page showing every configured sensor with unit and age; MSP identity and RTC set on connect. |
 | 5 | Dashboard | ZelionDash ported with all 337 test behaviours passing natively; audio and haptic alerts; flight log written; screenshots at both resolutions checked in. |
 | 6 | Link screen | Native ELRS configuration replacing `elrs.lua`: packet rate, telemetry ratio, switch mode, power, model match, WiFi, bind, other devices; status line with bad/good and flags. |
-| 7 | Heli screen | FC status, arming blockers by name, PID and rate profile selection, adjustment teller, flight stats, "write recommended sensor list". |
+| 7a | Identity and wizard | Aircraft recognised from `MSP_UID` on link-up; an unknown FC runs the setup wizard end to end (name, map, switches to mode ranges, telemetry list, ELRS id, stick check, EEPROM write) against a real FC and the result matches what the Configurator shows. |
+| 7b | Parameter editors and backup | Rates, PIDs, governor, rescue, mixer, servos, battery, telemetry list editable from the radio via `rf/params` descriptors for API 12.6 to 12.10; backup and restore round-trip a real FC with a clean diff. |
+| 7c | Events and ESC | Per-flight event log written next to the flight log; ESC parameter pages for at least HobbyWing V5 and Scorpion; adjustment teller and flight stats on the Heli overview. |
 | 8 | Release hardening | USB module passthrough and ELRS flashing verified, storage atomicity, brown-out behaviour, memory report, user guide, release packaging, a beta with the three helis ZelionDash was verified on. |
 
 ## Phase details
@@ -78,10 +80,26 @@ do not start UI work until phase 2's exit test passes on a real module.
 - Generic renderer for folders, selections, numbers, info and commands, so ELRS
   firmware updates that add parameters need no ZelionTX change.
 
-### Phase 7. Heli screen (1 to 2 weeks)
+### Phase 7a. Identity and wizard (2 weeks)
 
-- Status, arming blockers, profile switching, adjustment teller, flight stats.
-- "Write recommended CRSF sensor list" with a confirmation dialog and EEPROM write.
+- `rf/identity`, `aircraft/` records keyed by UID, auto-select on link-up.
+- `rf/wizard` as one transaction with a summary and confirmation; refuse while armed.
+- Automatic backup before the first write (needs the read half of `rf/backup`).
+
+### Phase 7b. Parameter editors and backup (3 to 4 weeks)
+
+- `rf/params` descriptor tables for every message in chapter 02 section G, checked
+  against `rotorflight-configurator.md` per API version.
+- Generic LVGL editor pages generated from descriptors; telemetry ratio boost while a
+  page is open; throughput indicator.
+- Backup and restore with field-level diff.
+
+### Phase 7c. Events and ESC (2 weeks)
+
+- `rf/events` and the event log file; aircraft identity columns in the flight log.
+- ESC parameter pages via `MSP_ESC_PARAMETERS` for the vendors with documented
+  layouts; adjustment teller; flight stats; "write recommended sensor list" if the
+  wizard was skipped.
 
 ### Phase 8. Release hardening (2 weeks)
 
@@ -91,10 +109,12 @@ do not start UI work until phase 2's exit test passes on a real module.
 
 ## Estimated effort
 
-Roughly 16 to 20 weeks of one experienced embedded developer's time for phases 0 to 8,
-front-loaded on phases 1 and 2. The dashboard port is the most predictable phase because
-its behaviour is already specified by tests. [unverified: estimates are judgement, not
-measurement.]
+Roughly 22 to 28 weeks of one experienced embedded developer's time for phases 0 to 8
+with the connected-system pillar (16 to 20 without it), front-loaded on phases 1 and 2.
+The dashboard port is the most predictable phase because its behaviour is already
+specified by tests; phase 7b is the least predictable because its size is the number of
+Rotorflight fields times the number of API versions. [unverified: estimates are
+judgement, not measurement.]
 
 ## Version 2 candidates (not planned, listed so version 1 does not preclude them)
 

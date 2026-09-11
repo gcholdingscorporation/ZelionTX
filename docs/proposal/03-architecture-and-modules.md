@@ -23,13 +23,13 @@ unless it is listed in the "reuse" column below.** Copying is a decision, not a 
 
 ```
 +---------------------------------------------------------------------+
-|  ui/            Dash screen   Link screen   Heli screen   Setup      |  LVGL 8.2
+|  ui/            Dash screen   Link screen   Heli pages    Setup      |  LVGL 8.2
 +---------------------------------------------------------------------+
 |  dash/          roles  state  alerts  profiles  escfault  flightlog   |  pure logic
-|                 flighttime  packhealth  (ported from ZelionDash)      |  (ported tests)
+|                 flighttime  packhealth  events (ported ZelionDash)    |  (ported tests)
 +---------------------------------------------------------------------+
-|  rf/            fc identity, status, profiles, boxnames, telemetry    |  MSP client
-|                 config, flight stats, adjustment names                |
+|  rf/            identity  params (table-driven)  wizard  backup       |  MSP client
+|                 events  (the FC is the model, the radio its window)   |
 +-------------------------------+-------------------------------------+
 |  telemetry/  store + decoders |  link/elrs  params client, status,   |
 |  (native + 0x88 + linkstats)  |  model select, bind, sync tracking    |
@@ -38,7 +38,7 @@ unless it is listed in the "reuse" column below.** Copying is a decision, not a 
 +---------------------------------------------------------------------+
 |  link/crsf  frame codec, CRC-8 0xD5, parser, router by type/address  |
 +---------------------------------------------------------------------+
-|  model/     channel map, switch levels, throttle policy, model store  |
+|  aircraft/  record per FC uid, channel map, switch levels, throttle   |
 |  input/     ADC read, calibration, switch positions, normalisation    |
 +---------------------------------------------------------------------+
 |  core/      tasks, scheduler (module-period driven), events, clock    |
@@ -95,10 +95,12 @@ Each module lists: owns, interface, reuse from EdgeTX, tests.
   decoding only), calibration struct.
 - Tests: calibration maths, dead zone, switch decoding with synthetic ADC values.
 
-### model/
+### aircraft/  (was `model/`; see chapter 06)
 
-- Owns: the ZelionTX model schema and the translation from an `InputFrame` to 16
-  channel values in CRSF units.
+- Owns: one aircraft record per FC unique id, created on first connection, plus the
+  translation from an `InputFrame` to 16 channel values in CRSF units. The record
+  holds only what the FC cannot: the fields below, ELRS link settings, dashboard
+  overrides, and a cache of FC data for offline viewing.
   - `Channel { source, reverse, endpointLow, endpointHigh, subtrim, kind }` where kind
     is `Analog` or `Switch`.
   - `SwitchChannel { switchId, levels[] }` with microsecond levels in 5 us steps
@@ -146,8 +148,9 @@ Each module lists: owns, interface, reuse from EdgeTX, tests.
 
 - Owns: MSP v1/v2 body encoding, chunking into 8-byte uplink CRSF frames with the
   status byte (sequence, start, version, error), reassembly of 58-byte downlink chunks,
-  request queue with one in-flight request, retry every 800 ms, per-request timeout,
-  error responses.
+  a prioritised request queue with one in-flight request (status polls yield to
+  wizard, backup and page loads), retry every 800 ms, per-request timeout, error
+  responses, and a throughput estimate the UI can show.
 - Interface: `msp_request(cmd, payload, callback)`, `msp_on_frame(frame)`.
 - Reuse: none (EdgeTX has no native MSP).
 - Tests: chunking golden vectors, sequence-gap abort, jumbo v1 size, v2 code > 255,
@@ -167,17 +170,33 @@ Each module lists: owns, interface, reuse from EdgeTX, tests.
 - Tests: one golden 0x88 frame per encoder; timeout and validity transitions;
   min/max reset on session start.
 
-### rf/  (Rotorflight service)
+### rf/  (Rotorflight service; expanded by chapter 06)
 
-- Owns: FC identity and API gating, `MSP_STATUS` polling at 2 Hz while on screen,
-  boxnames/boxids fetch and cache per FC, profile selection, arming-disable names,
-  adjustment function names, `MSP_TELEMETRY_CONFIG` read and the "write recommended
-  list" action, `MSP_SET_RTC` on connect, `MSP_FLIGHT_STATS` when supported, FC model
-  name to radio model name suggestion.
-- Interface: `rf_state()` (connected, api, variant, profiles, arming flags),
-  `rf_select_profile(kind, index)`, `rf_write_telemetry_list(list)`.
-- Tests: fake FC answering the MSP set; payload decoders against the layouts in
-  `rotorflight-configurator.md`.
+- `rf/identity`: `MSP_UID`, `MSP_NAME`, API and variant gating, aircraft auto-select
+  on link-up, `MSP_STATUS` polling at 2 Hz while on screen, boxnames/boxids cache,
+  arming-disable and adjustment-function name tables, `MSP_SET_RTC`,
+  `MSP_FLIGHT_STATS`.
+- `rf/params`: a table-driven parameter layer. One descriptor per MSP message and API
+  version (field name, offset, type, scale, unit, min, max, group), from which read,
+  write, range check and the generic editor pages are all derived. Adding a
+  Rotorflight field is a table row. Covers rates, PID profile and tuning, governor
+  config and profile, rescue, mixer, servos, battery, ESC sensor and parameters,
+  telemetry config, RC config, mode and adjustment ranges.
+- `rf/wizard`: the first-connection sequence (name, channel map, switch assignment to
+  mode and adjustment ranges, telemetry list, ELRS model id, stick travel check,
+  EEPROM write), run as one transaction with a summary and a single confirmation.
+- `rf/backup`: read every config message for the API version into a file keyed by
+  UID and FC version; restore with a field-level diff; automatic backup before the
+  first write of a session.
+- `rf/events`: per-flight event stream synthesised from telemetry transitions and
+  MSP status, handed to `dash/flightlog`.
+- Interface: `rf_state()`, `rf_select_profile(kind, index)`, `rf_param_get/set(id)`,
+  `rf_wizard_run(plan)`, `rf_backup(), rf_restore(file)`.
+- Safety: all writes go through `rf/params`; refused while armed; reboot-required and
+  configuration-state flags surfaced.
+- Tests: fake FC answering the full MSP set for each API version; descriptor tables
+  checked against the layouts in `rotorflight-configurator.md`; wizard and backup as
+  scripted transactions with injected failures.
 
 ### dash/  (port of ZelionDash)
 

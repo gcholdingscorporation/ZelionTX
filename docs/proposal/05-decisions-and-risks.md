@@ -21,7 +21,8 @@
 | Q-2 | Arming: ELRS arming byte ("arm via switch") or CH5 arming? | ELRS default puts arm on CH5 and Rotorflight's default map also uses CH5 as collective, which conflicts. Betaflight-style setups move arm to an AUX channel via the ELRS arming byte; Rotorflight users typically map collective to CH5 and ARM to an AUX. | Support both in `model/`, default to CH5 = collective with ARM on AUX1 (CH6) sent through the 25-byte RC frame's arming byte set to "switch mode". Verify on the bench in phase 2 which combination the current ELRS receiver firmware honours for CH5 rewriting. [unverified until tested] |
 | Q-3 | LVGL version: stay on EdgeTX's 8.2 branch or move to LVGL 9? | 8.2 is what the reused wrapper and DMA2D flush target; 9 has a better renderer but the wrapper must be rewritten. | Stay on 8.2 for version 1; revisit after phase 8. |
 | Q-4 | Default internal module baud. | 400k works everywhere at 500 Hz; 1.87M is what the Rotorflight Lua suite demands and supports 1 kHz. | 1.87M default, 400k selectable. |
-| Q-5 | Should the Heli screen include any tuning (rates, PIDs, governor) or only status and profile switching? | Tuning from the radio is convenient at the field but is exactly the scope the brief excludes. | Status, profiles, adjustment teller only in version 1. Adjustment functions driven from the FC's adjustment ranges are the field-tuning path and need no new UI. |
+| Q-5 | Should the Heli screen include tuning (rates, PIDs, governor)? | Answered by the connected-system pillar (chapter 06): yes, as table-driven editors that store everything in the FC. | Closed: in scope, phase 7b. |
+| Q-8 | How far should the setup wizard go in writing FC settings? | (a) only what the radio must own coherently: mode and adjustment ranges, telemetry list, name, ELRS id; (b) also a starter tuning (rates, governor headspeed, battery profile) chosen by aircraft class; (c) everything the Configurator's own setup does. | (a) for version 1. (b) is attractive but means shipping tuning opinions; decide after flying the wizard. (c) duplicates the Configurator and includes hardware-level settings the link should not touch. |
 | Q-6 | Touch on TX16S Mk3: required or optional for navigation? | Every screen must be usable with rotary and keys on the TX15 anyway. | Keys and rotary are the primary input; touch is an accelerator. |
 | Q-7 | Licence for the existing ZelionDash repository. | It has no licence file today. | Add one (GPL-2.0-only keeps the port simple; a permissive licence also works since it is your own code). |
 
@@ -38,6 +39,9 @@
 | R-7 | Scope creep back toward EdgeTX (one more mix, one more switch function). | High | Medium | The out-of-scope list in `01` is a contract; anything added needs a written reason and a test. |
 | R-8 | Voice files: the number vocabulary depends on EdgeTX's sound pack layout. | Low | Low | Ship a voice pack built by `tools/` from a permissive TTS or reuse the EdgeTX pack under its terms (check the pack licence separately). [unverified] |
 | R-9 | Single-developer bus factor on the hardware layer. | Medium | Medium | Bring-up checklist and module docs written as part of each phase, not after. |
+| R-10 | Writing FC settings from the radio: a bad write makes a heli unsafe (chapter 06). | Medium | High | One write path with range checks from descriptors; refused while armed; automatic backup before the first write; summary and single confirmation; reboot-required flag shown. |
+| R-11 | Link bandwidth makes configuration pages slow (seconds per page at 250 Hz 1:64), which reads as "broken". | High | Medium | Prioritised MSP queue, telemetry ratio boost while a page is open, throughput indicator, cached last-read values shown immediately with an "updating" mark. |
+| R-12 | The VBar comparison sets expectations (vibration analysis, FC update over the air) the link cannot meet. | Medium | Low | Chapter 06 states the three impossibilities plainly; the UI says so where a user would look. |
 
 ## What the research could not settle
 
@@ -47,3 +51,6 @@
   ratio: not found in the firmware, Lua or configurator repositories.
 - The licence of the EdgeTX voice packs (they live outside the firmware repository).
 - Exact flash and RAM figures for the trimmed platform layer; only obtainable by building it (phase 1).
+- The Mikado VBar Control material was read through search summaries only; the primary
+  manual should be checked before any VBar behaviour is quoted as exact
+  (`../research/vbar-control.md`).
