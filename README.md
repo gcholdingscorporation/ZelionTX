@@ -37,11 +37,12 @@ Research notes (the facts the proposal rests on, with file and line references):
 
 ## Planned targets
 
-RadioMaster TX16S Mk3 and TX15 first (STM32H750, internal ELRS module only). Other
-EdgeTX H7 radios are expected to be board-definition work.
+RadioMaster TX15 first, then the TX16S Mk3 and the GX15 (STM32H750, internal ELRS
+module only). Only the TX15 is wired up in the build so far. Other EdgeTX H7 radios
+are expected to be board-definition work.
 
 ## Licence
 
-To be GPL-2.0-only, because the hardware layer derives from EdgeTX. See decision D-1
-in the proposal. No code from ExpressLRS or Rotorflight (GPL-3.0) is used; their
-protocols are re-implemented from the research notes.
+GPL-2.0-only, because the hardware layer derives from EdgeTX. See `LICENSE`, `NOTICE`
+and decision D-1 in the proposal. No code from ExpressLRS or Rotorflight (GPL-3.0) is
+used; their protocols are re-implemented from the research notes.

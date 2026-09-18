@@ -107,7 +107,7 @@ version 1; "SHOULD" is version 1 if cheap, otherwise version 2.
 
 | Id | Requirement |
 |---|---|
-| P-1 | RC frame period follows the module sync from 1000 us to 50 ms; frame timing jitter under 50 us (measured on the UART line in the simulator and on hardware with a logic analyser). |
+| P-1 | RC frame period follows the module sync from 1000 us to 50 ms; frame timing jitter under 50 us (measured on the UART line in the simulator; on hardware, read from the ELRS module's own good/bad frame counters and sync offset per D-18, which supersedes the logic analyser this line originally called for). |
 | P-2 | Time from stick movement to RC frame on the wire under 1.5 frame periods. |
 | P-3 | Dashboard steady-state 30 fps at 800x480 with telemetry at 20 Hz, audio playing and logging enabled; UI task budget under 50 % of one core. |
 | P-4 | Boot to RC frames flowing in under 2 s, to dashboard in under 3 s. |

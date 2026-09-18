@@ -25,6 +25,8 @@ No code from ExpressLRS (GPL-3.0) or Rotorflight (GPL-3.0) is included.
 Their wire protocols are re-implemented from the notes in `docs/research/`,
 which describe observed behaviour and constants, not source text.
 
-The dashboard logic in `src/dash/` is a port of ZelionDash
+Planned, not yet present in this tree: the dashboard logic in `src/dash/` is to
+be a port of ZelionDash
 (https://github.com/gcholdingscorporation/zelionpowerflightdashboard), by the
-same authors, relicensed here under GPL-2.0-only.
+same authors, relicensed here under GPL-2.0-only. This paragraph becomes a
+statement of fact when that directory lands.

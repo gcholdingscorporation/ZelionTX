@@ -3,6 +3,9 @@
 Read this first in any new session or Project thread. It replaces the need for the
 original conversation transcript.
 
+The work lives on `claude/beautiful-faraday-5hjoen`, which is also the repository's
+default branch. There is no `main`.
+
 ## What exists
 
 - Proposal: `docs/proposal/01` to `06` (vision, requirements, architecture and
@@ -13,12 +16,41 @@ original conversation transcript.
 - Platform layer vendored from EdgeTX `96ab274` into `platform/` by
   `tools/vendor-edgetx.sh` (decision D-19). Everything above the HAL is new code
   in `src/`.
-- Build: `tools/setup-toolchain.sh` (xPack Arm GCC 14.2.1), `cmake --preset tx15`,
-  `cmake --build --preset tx15`. CI in `.github/workflows/build.yml`.
+- Build, from a clean checkout, in this order:
+
+  ```
+  pip install -r tools/requirements.txt          # includes pyelftools, which
+                                                 # the UF2 step needs
+  tools/setup-toolchain.sh                       # xPack Arm GCC 14.2.1
+  export PATH="$HOME/.zeliontx/toolchain/bin:$PATH"
+  cmake --preset tx15
+  cmake --build --preset tx15
+  ```
+
+  The clone needs no `git submodule` step: `platform/` carries the EdgeTX tree
+  and its third-party libraries (LVGL, FreeRTOS, the STM32H7 HAL, FatFs, the USB
+  device library, stb, uf2) in-tree, 2,728 of the repository's 2,759 files. The
+  submodules named in `docs/modules/platform.md` are what an *EdgeTX* checkout
+  needs before you can re-run `tools/vendor-edgetx.sh`, not a step here.
+- Targets: `tx15` is the only one wired up. `firmware/CMakeLists.txt` stops with
+  "not wired up yet" for the `tx16smk3` and `gx15` presets, which exist in
+  `CMakePresets.json` ahead of the board work.
+- Native build and tests: `cmake --preset native` configures and prints "not yet
+  implemented". `tests/CMakeLists.txt` is a placeholder, so `ctest --preset native`
+  finds no tests and exits 0. Phase 2's unit tests are what fills it.
+- CI in `.github/workflows/build.yml`, two jobs. `native tests` passes but asserts
+  nothing, for the reason above. `firmware tx15` had failed on every run up to
+  `8e58407` at the UF2 step, because `pyelftools` was missing from
+  `tools/requirements.txt`; that is fixed, and the build bullet above is the
+  sequence the job runs.
 - Build 1 for the TX15: boots the board, LVGL frame counter, live analog values,
   hold power two seconds to switch off. 225 KB text. UF2 writes only external
   flash; the EdgeTX bootloader is untouched. Details and the flashing procedure in
   `docs/modules/platform.md`. **Not yet flashed by anyone.**
+- Build 1 reproduces. Rebuilt from a clean checkout on 2026-09-18 with the
+  sequence above: text 225,228 / data 236, `firmware.uf2` 451,072 bytes in 881
+  blocks, identical to the figures recorded in `docs/modules/platform.md`. If your
+  build differs from those numbers, something in your environment differs.
 
 ## Decisions that bind the work
 
@@ -60,4 +92,4 @@ from ExpressLRS or Rotorflight. Label statements as FACT, INFERENCE or GUESS and
 mark anything unverified. The owner is not a programmer: they flash builds and
 report what the radio does; you write and test the code. Every FC write path must
 honour the safety interlocks in docs/proposal/06. Commit small, push to the
-working branch, and keep docs/modules/ current.
+working branch (claude/beautiful-faraday-5hjoen), and keep docs/modules/ current.

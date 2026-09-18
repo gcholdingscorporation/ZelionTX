@@ -51,9 +51,12 @@ do not start UI work until phase 2's exit test passes on a real module.
 - `link/crsf`, `link/elrs` (state machine, sync, link stats), `core/rc_scheduler`.
 - Test double: a scripted ELRS module for native tests (answers ping, sends sync with a
   chosen interval and offset, sends link stats, drops frames on demand).
-- Hardware validation with a logic analyser on the module UART and with an FC in the
-  Configurator's receiver tab. Record a capture of real module output into
-  `tests/captures/` for the simulator's stream player.
+- Hardware validation per D-18, which supersedes the logic analyser this step
+  originally called for: the owner flashes and reports, and the instrument is the
+  ELRS module's own good/bad frame counters and sync offset, shown on the Link
+  screen, cross-checked with an FC in the Configurator's receiver tab. Record a
+  capture of real module output into `tests/captures/` for the simulator's stream
+  player.
 - Also implement: module power sequencing, baud selection, USB CDC passthrough (it
   needs the same UART plumbing and unblocks ELRS flashing early).
 

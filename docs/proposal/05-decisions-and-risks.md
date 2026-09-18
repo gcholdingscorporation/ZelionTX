@@ -47,7 +47,7 @@
 | Id | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|---|
 | R-1 | H750 bring-up surprises when EdgeTX's board code is separated from its build system (hidden dependencies on `g_eeGeneral`, `g_model`, GUI globals in drivers). | High | Medium | Phase 1 is exactly this; keep a shim header of the few globals drivers touch and burn them down one by one. |
-| R-2 | ELRS module timing: the module drops RF after 1 s without frames and demotes rate on a slow baud; a scheduler bug looks like "the heli fell out of the sky". | Medium | High | Phase 2 exit test with a logic analyser; watchdog on the RC task; never block that task. |
+| R-2 | ELRS module timing: the module drops RF after 1 s without frames and demotes rate on a slow baud; a scheduler bug looks like "the heli fell out of the sky". | Medium | High | Phase 2 exit test against the module's own good/bad counters and sync offset (D-18, which supersedes the logic analyser this mitigation originally named); watchdog on the RC task; never block that task. |
 | R-3 | Arming semantics across ELRS receiver versions (CH5 rewrite, CH14 mirror, arming byte). | Medium | High | Q-2 bench test with the actual receivers before phase 3 flight. |
 | R-4 | Rotorflight API drift (12.7, 12.8, 12.9 already change payloads). | High | Low | Gate on API version like the Configurator does; decode only fields the version has; the 0x88 appIds are stable. |
 | R-5 | Factory FC sends no custom telemetry until the sensor list is configured; a new user sees dashes and blames the radio. | High | Medium | F-C11 "write recommended list" action and an explicit message on the Dash screen. |

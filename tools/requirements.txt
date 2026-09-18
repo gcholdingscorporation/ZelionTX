@@ -6,3 +6,8 @@ pillow
 lz4
 rich
 requests
+
+# Used by radio/util/elf2uf2.py, the post-build step that turns firmware.elf
+# into the firmware.uf2 that gets flashed. Without it the firmware links and
+# then the build fails at the last step.
+pyelftools
