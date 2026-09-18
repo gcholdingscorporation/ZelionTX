@@ -18,6 +18,7 @@ that already exists as an EdgeTX widget.
 
 Proposal (read in order):
 
+0. [Handoff: current state](docs/HANDOFF.md)
 1. [Vision and scope](docs/proposal/01-vision-and-scope.md)
 2. [Requirements](docs/proposal/02-requirements.md)
 3. [Architecture and modules](docs/proposal/03-architecture-and-modules.md)
