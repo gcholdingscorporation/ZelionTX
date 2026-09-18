@@ -12,7 +12,7 @@ identity, sets it up and tunes it over the link with every parameter stored in t
 and shows, speaks and logs what the aircraft reports through the ZelionDash dashboard
 that already exists as an EdgeTX widget.
 
-**Status: proposal.** Nothing builds yet. Start with the documents below.
+**Status: phase 1 bring-up.** The TX15 firmware builds (see `docs/modules/platform.md`); build 1 awaits its first flash. Start with the handoff below.
 
 ## Documents
 
